@@ -11,8 +11,7 @@ export const load: LayoutServerLoad = async ({ platform }) => {
 			settings: {
 				price_text: 'Стоимость уточняйте',
 				price_note: 'Напишите нам — мы расскажем о тарифах и пришлём пробный урок',
-				whatsapp_link: 'https://wa.me/79991234567',
-				telegram_link: 'https://t.me/hispamama',
+				telegram_link: 'https://t.me/mamaespanola',
 				contact_email: 'info@myspanish.space'
 			}
 		};

@@ -2,14 +2,14 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import { track } from '$lib/analytics';
+	import { questUrl, QUEST_LABEL } from '$lib/links';
 	import ThemeModeToggle from '$stylist/theme/component/atom/theme-mode-toggle/index.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let settings = $derived(data.settings);
 
-	const telegramLink = $derived(settings.telegram_link ?? 'https://t.me/hispamama');
-	const whatsappLink = $derived(settings.whatsapp_link ?? 'https://wa.me/79991234567');
+	const telegramLink = $derived(settings.telegram_link ?? 'https://t.me/mamaespanola');
 	const contactEmail = $derived(settings.contact_email ?? 'info@myspanish.space');
 
 	onMount(() => {
@@ -49,14 +49,14 @@
 				Написать в Telegram
 			</a>
 			<a
-				href={whatsappLink}
+				href={questUrl('uc')}
 				target="_blank"
 				rel="noopener"
 				class="btn btn-outline"
-				data-track-id="uc-wa"
-				onclick={() => track('whatsapp_click', { button_id: 'uc-wa', section_id: 'under-construction' })}
+				data-track-id="uc-quest"
+				onclick={() => track('cta_click', { button_id: 'quest-uc', section_id: 'under-construction' })}
 			>
-				Написать в WhatsApp
+				{QUEST_LABEL}
 			</a>
 		</div>
 

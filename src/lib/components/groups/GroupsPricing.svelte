@@ -5,10 +5,9 @@
 		priceText: string;
 		priceNote: string;
 		telegramLink: string;
-		whatsappLink: string;
 	}
 
-	let { priceText, priceNote, telegramLink, whatsappLink }: Props = $props();
+	let { priceText, priceNote, telegramLink }: Props = $props();
 </script>
 
 <section class="section pricing-section" id="price" data-section="price">
@@ -53,17 +52,6 @@
 							track('price_click', { button_id: 'groups-price-cta-tg', section_id: 'price' })}
 					>
 						Узнать стоимость в Telegram
-					</a>
-					<a
-						href={whatsappLink}
-						class="btn btn-outline btn-lg"
-						target="_blank"
-						rel="noopener"
-						data-track-id="groups-price-cta-wa"
-						onclick={() =>
-							track('price_click', { button_id: 'groups-price-cta-wa', section_id: 'price' })}
-					>
-						Узнать в WhatsApp
 					</a>
 					<a
 						href="#contact"

@@ -91,8 +91,7 @@
 	<GroupsPricing
 		priceText={settings.price_text ?? 'Стоимость уточняйте'}
 		priceNote={settings.price_note ?? 'Напишите нам — мы расскажем о тарифах и подберём группу'}
-		telegramLink={settings.telegram_link ?? 'https://t.me/hispamama'}
-		whatsappLink={settings.whatsapp_link ?? 'https://wa.me/79991234567'}
+		telegramLink={settings.telegram_link ?? 'https://t.me/mamaespanola'}
 	/>
 
 	<GroupsFaq />
@@ -101,7 +100,6 @@
 </main>
 
 <Footer
-	telegramLink={settings.telegram_link ?? 'https://t.me/hispamama'}
-	whatsappLink={settings.whatsapp_link ?? 'https://wa.me/79991234567'}
+	telegramLink={settings.telegram_link ?? 'https://t.me/mamaespanola'}
 	contactEmail={settings.contact_email ?? 'info@myspanish.space'}
 />

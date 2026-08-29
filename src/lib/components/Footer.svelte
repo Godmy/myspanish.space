@@ -3,11 +3,10 @@
 
 	interface Props {
 		telegramLink: string;
-		whatsappLink: string;
 		contactEmail: string;
 	}
 
-	let { telegramLink, whatsappLink, contactEmail }: Props = $props();
+	let { telegramLink, contactEmail }: Props = $props();
 
 	const navLinks = [
 		{ href: '#for-whom', label: 'Для кого' },
@@ -52,17 +51,6 @@
 					onclick={() => track('telegram_click', { button_id: 'footer-tg', section_id: 'footer' })}
 				>
 					Telegram
-				</a>
-				<a
-					href={whatsappLink}
-					target="_blank"
-					rel="noopener"
-					class="footer-link"
-					data-track-id="footer-wa"
-					onclick={() =>
-						track('whatsapp_click', { button_id: 'footer-wa', section_id: 'footer' })}
-				>
-					WhatsApp
 				</a>
 				<a href="mailto:{contactEmail}" class="footer-link">{contactEmail}</a>
 			</div>

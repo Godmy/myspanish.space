@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { track } from '$lib/analytics';
+	import { questUrl, QUEST_LABEL } from '$lib/links';
 
 	interface Props {
 		telegramLink: string;
-		whatsappLink: string;
 	}
 
-	let { telegramLink, whatsappLink }: Props = $props();
+	let { telegramLink }: Props = $props();
 </script>
 
 <section class="free-materials" data-section="free-materials">
@@ -49,18 +49,18 @@
 						Получить в Telegram
 					</a>
 					<a
-						href={whatsappLink}
+						href={questUrl('free-materials')}
 						class="btn btn-outline"
 						target="_blank"
 						rel="noopener"
-						data-track-id="free-materials-wa"
+						data-track-id="free-materials-quest"
 						onclick={() =>
-							track('free_materials_click', {
-								button_id: 'free-materials-wa',
+							track('cta_click', {
+								button_id: 'quest-free-materials',
 								section_id: 'free-materials'
 							})}
 					>
-						Получить в WhatsApp
+						{QUEST_LABEL}
 					</a>
 				</div>
 			</div>
