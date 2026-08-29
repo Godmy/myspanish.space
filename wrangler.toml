@@ -1,0 +1,17 @@
+name = "myspanish-space"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "myspanish-db"
+database_id = "1c0b6112-e90b-48df-93ea-358f0422f3f8"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "16bb1af5cb65422c80382a688715df8d"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "myspanish-media"

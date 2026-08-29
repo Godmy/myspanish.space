@@ -1,0 +1,196 @@
+/* ─── Design tokens ─────────────────────────────────────────── */
+:root {
+	/* Primary: soft lavender */
+	--color-primary: #9c8fc9;
+	--color-primary-dark: #7a6ba8;
+	--color-primary-light: #efeafb;
+	--color-primary-rgb: 156, 143, 201;
+
+	/* Accent: muted mint */
+	--color-gold: #8fcbb0;
+	--color-gold-light: #e3f5ec;
+	--color-gold-rgb: 143, 203, 176;
+
+	/* Neutrals */
+	--color-bg: #fcfaff;
+	--color-surface: #f2eefa;
+	--color-border: #e2d9f3;
+	--color-text: #3a3350;
+	--color-text-muted: #7a7290;
+	--color-text-muted-rgb: 122, 114, 144;
+
+	/* Dark (deep lavender, not black) */
+	--color-dark: #4a3f63;
+	--color-dark-2: #3d3450;
+
+	/* Typography */
+	--font-display: 'Fraunces', Georgia, serif;
+	--font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+	/* Layout */
+	--container-max: 1160px;
+	--container-px: 1.5rem;
+
+	/* Radius */
+	--radius-sm: 8px;
+	--radius-md: 14px;
+	--radius-lg: 20px;
+	--radius-xl: 32px;
+
+	/* Shadows */
+	--shadow-sm: 0 2px 8px rgba(26, 12, 4, 0.06);
+	--shadow-md: 0 4px 20px rgba(26, 12, 4, 0.09);
+	--shadow-lg: 0 8px 40px rgba(26, 12, 4, 0.12);
+	--shadow-xl: 0 16px 64px rgba(26, 12, 4, 0.14);
+}
+
+/* ─── Reset ─────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	font-family: var(--font-sans);
+	background: var(--color-bg);
+	color: var(--color-text);
+	margin: 0;
+	padding: 0;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+/* ─── Container ─────────────────────────────────────────────── */
+.container {
+	width: 100%;
+	max-width: var(--container-max);
+	margin-inline: auto;
+	padding-inline: var(--container-px);
+}
+
+/* ─── Section base ──────────────────────────────────────────── */
+.section {
+	padding: 6rem 0;
+}
+
+.section-header {
+	text-align: center;
+	margin-bottom: 3.5rem;
+}
+
+.section-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	background: var(--color-primary-light);
+	color: var(--color-primary);
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	border-radius: 100px;
+	padding: 0.3rem 0.85rem;
+	margin-bottom: 1rem;
+	font-family: var(--font-sans);
+}
+
+.section-title {
+	font-family: var(--font-display);
+	font-size: clamp(2rem, 4.5vw, 3rem);
+	font-weight: 800;
+	color: var(--color-text);
+	line-height: 1.15;
+	margin: 0 0 0.85rem;
+	letter-spacing: -0.02em;
+}
+
+.section-desc {
+	font-size: 1.05rem;
+	color: var(--color-text-muted);
+	max-width: 54ch;
+	margin: 0 auto;
+	line-height: 1.7;
+}
+
+/* ─── Buttons ───────────────────────────────────────────────── */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.75rem 1.6rem;
+	border-radius: var(--radius-md);
+	font-size: 0.9rem;
+	font-weight: 700;
+	font-family: var(--font-sans);
+	cursor: pointer;
+	text-decoration: none;
+	border: 2px solid transparent;
+	transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease,
+		color 0.2s ease, border-color 0.2s ease;
+	white-space: nowrap;
+	line-height: 1.2;
+	letter-spacing: 0.01em;
+	min-height: 44px;
+}
+
+.btn:hover {
+	transform: translateY(-2px);
+}
+.btn:active {
+	transform: translateY(0);
+}
+
+.btn-primary {
+	background: var(--color-primary);
+	color: white;
+	border-color: var(--color-primary);
+	box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.35);
+}
+.btn-primary:hover {
+	background: var(--color-primary-dark);
+	border-color: var(--color-primary-dark);
+	box-shadow: 0 6px 24px rgba(var(--color-primary-rgb), 0.45);
+}
+
+.btn-outline {
+	background: transparent;
+	color: var(--color-primary);
+	border-color: currentColor;
+}
+.btn-outline:hover {
+	background: var(--color-primary-light);
+}
+
+.btn-lg {
+	padding: 0.9rem 2.1rem;
+	font-size: 1rem;
+	border-radius: var(--radius-lg);
+	min-height: 52px;
+}
+
+/* ─── Utilities ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+	.section {
+		padding: 4rem 0;
+	}
+
+	:root {
+		--container-px: 1rem;
+	}
+}
+
+[id] {
+	scroll-margin-top: 80px;
+}
