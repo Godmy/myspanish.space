@@ -1,10 +1,13 @@
 /* ─── Design tokens ─────────────────────────────────────────── */
 :root {
+	color-scheme: light;
+
 	/* Primary: soft lavender */
 	--color-primary: #9c8fc9;
 	--color-primary-dark: #7a6ba8;
 	--color-primary-light: #efeafb;
 	--color-primary-rgb: 156, 143, 201;
+	--color-on-primary: #ffffff;
 
 	/* Accent: muted mint */
 	--color-gold: #8fcbb0;
@@ -42,6 +45,76 @@
 	--shadow-md: 0 4px 20px rgba(26, 12, 4, 0.09);
 	--shadow-lg: 0 8px 40px rgba(26, 12, 4, 0.12);
 	--shadow-xl: 0 16px 64px rgba(26, 12, 4, 0.14);
+}
+
+/* ─── Dark theme ────────────────────────────────────────────────
+ * Палитра — STYLIST-003. Драйвится `$stylist` ThemeModeToggle:
+ * при выборе тёмной темы на <html> появляется class="dark" / [theme-mode="dark"].
+ * Второй блок — фолбэк первой отрисовки / no-JS для пользователя с тёмной ОС
+ * (класс ещё не проставлен, theme-mode="default").
+ * ⚠️ Списки токенов в обоих правилах ДОЛЖНЫ совпадать — держать синхронными.
+ * Пока покрывает только UI на токенах (страницы `/`, `/quiz`, base). Токенизация
+ * хардкод-цветов лендинга — Шаг 2, бэклог (WEB-DEV-004 §3).
+ */
+:root.dark,
+:root[theme-mode='dark'] {
+	color-scheme: dark;
+
+	--color-primary: #ab9ed9;
+	--color-primary-dark: #c4b9ec;
+	--color-primary-light: #2c2545;
+	--color-primary-rgb: 171, 158, 217;
+	--color-on-primary: #1b1526;
+
+	--color-gold: #93ceb3;
+	--color-gold-light: #1e3a30;
+	--color-gold-rgb: 147, 206, 179;
+
+	--color-bg: #15121e;
+	--color-surface: #201b2d;
+	--color-border: #403858;
+	--color-text: #ece8f5;
+	--color-text-muted: #a79ec2;
+	--color-text-muted-rgb: 167, 158, 194;
+
+	--color-dark: #2a2340;
+	--color-dark-2: #211b31;
+
+	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
+	--shadow-md: 0 4px 20px rgba(0, 0, 0, 0.42);
+	--shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.52);
+	--shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.62);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not(.light):not([theme-mode='light']) {
+		color-scheme: dark;
+
+		--color-primary: #ab9ed9;
+		--color-primary-dark: #c4b9ec;
+		--color-primary-light: #2c2545;
+		--color-primary-rgb: 171, 158, 217;
+		--color-on-primary: #1b1526;
+
+		--color-gold: #93ceb3;
+		--color-gold-light: #1e3a30;
+		--color-gold-rgb: 147, 206, 179;
+
+		--color-bg: #15121e;
+		--color-surface: #201b2d;
+		--color-border: #403858;
+		--color-text: #ece8f5;
+		--color-text-muted: #a79ec2;
+		--color-text-muted-rgb: 167, 158, 194;
+
+		--color-dark: #2a2340;
+		--color-dark-2: #211b31;
+
+		--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
+		--shadow-md: 0 4px 20px rgba(0, 0, 0, 0.42);
+		--shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.52);
+		--shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.62);
+	}
 }
 
 /* ─── Reset ─────────────────────────────────────────────────── */
@@ -154,7 +227,7 @@ img {
 
 .btn-primary {
 	background: var(--color-primary);
-	color: white;
+	color: var(--color-on-primary, #fff);
 	border-color: var(--color-primary);
 	box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.35);
 }

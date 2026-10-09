@@ -14,7 +14,7 @@
 	});
 
 	function onStartClick() {
-		track('cta_click', { button_id: 'quiz-start', section_id: 'quiz-teaser' });
+		track('quest_click', { button_id: 'quiz-start', section_id: 'quiz-teaser' });
 	}
 </script>
 

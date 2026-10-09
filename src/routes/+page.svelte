@@ -54,7 +54,7 @@
 				rel="noopener"
 				class="btn btn-outline"
 				data-track-id="uc-quest"
-				onclick={() => track('cta_click', { button_id: 'quest-uc', section_id: 'under-construction' })}
+				onclick={() => track('quest_click', { button_id: 'quest-uc', section_id: 'under-construction' })}
 			>
 				{QUEST_LABEL}
 			</a>

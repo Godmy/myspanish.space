@@ -8,7 +8,8 @@ export type EventType =
 	| 'whatsapp_click'
 	| 'telegram_click'
 	| 'free_materials_click'
-	| 'price_click';
+	| 'price_click'
+	| 'quest_click';
 
 export interface TrackEvent {
 	event_type: EventType;

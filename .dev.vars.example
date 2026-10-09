@@ -1,13 +1,9 @@
-# .dev.vars — локальные секреты для `wrangler pages dev` (в .gitignore, не коммитится).
-# Скопируйте в `.dev.vars` при необходимости.
-#
-# На текущий момент сайт НЕ использует ни одного секрета: он работает только на
-# биндингах DB / KV / MEDIA, которые описаны в wrangler.toml и не являются секретами.
-#
-# Плейсхолдеры ниже — задел на будущее (уведомления о лидах, интеграции). Раскомментируйте
-# и добавьте в код через `platform.env.<ИМЯ>` + продублируйте в проде командой
-#   wrangler pages secret put <ИМЯ> --project-name myspanish-space
-#
-# TELEGRAM_BOT_TOKEN=
-# TELEGRAM_LEADS_CHAT_ID=
-# LEADS_WEBHOOK_URL=
+# Local Worker secrets for `wrangler dev`.
+# Do not commit real values.
+
+AUTH_SECRET=
+TELEGRAM_LOGIN_BOT_TOKEN=
+TELEGRAM_LOGIN_BOT_USERNAME=myspanish_space_quiz_bot
+PUBLIC_TELEGRAM_LOGIN_BOT_USERNAME=myspanish_space_quiz_bot
+ADMIN_TELEGRAM_IDS=
+ADMIN_TELEGRAM_USERNAMES=PavarenkinDA

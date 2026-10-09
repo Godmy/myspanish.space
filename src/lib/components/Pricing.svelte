@@ -64,7 +64,7 @@
 						rel="noopener"
 						data-track-id="price-cta-quest"
 						onclick={() =>
-							track('cta_click', { button_id: 'quest-price', section_id: 'price' })}
+							track('quest_click', { button_id: 'quest-price', section_id: 'price' })}
 					>
 						{QUEST_LABEL}
 					</a>

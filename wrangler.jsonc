@@ -1,0 +1,47 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "myspanish-space",
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"compatibility_date": "2026-09-07",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		"directory": ".svelte-kit/cloudflare",
+		"binding": "ASSETS",
+		"not_found_handling": "none"
+	},
+	"observability": { "enabled": true },
+	"vars": {
+		"PUBLIC_TELEGRAM_LOGIN_BOT_USERNAME": "myspanish_space_quiz_bot",
+		"ADMIN_TELEGRAM_IDS": "",
+		"ADMIN_TELEGRAM_USERNAMES": "PavarenkinDA"
+	},
+	"routes": [
+		{ "pattern": "myspanish.space/*", "zone_name": "myspanish.space" },
+		{ "pattern": "www.myspanish.space/*", "zone_name": "myspanish.space" }
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "myspanish-db",
+			"database_id": "1c0b6112-e90b-48df-93ea-358f0422f3f8",
+			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "QUIZ_DB",
+			"database_name": "myspanish-quiz-db",
+			"database_id": "90a9dfa5-f1c6-4bfd-86a8-b42426dffa43"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "KV",
+			"id": "16bb1af5cb65422c80382a688715df8d"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "myspanish-media"
+		}
+	]
+}

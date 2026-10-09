@@ -1,80 +1,108 @@
-# myspanish.space — Испанский с мамой
+# myspanish.space
 
-Одностраничный лендинг проекта «Испанский с мамой».  
-Стек: **SvelteKit 2 + TypeScript + Cloudflare Pages/Workers/D1/KV/R2**.
+Сайт проекта «Испанский с мамой» на **SvelteKit 2 / Svelte 5 / TypeScript** с деплоем в **Cloudflare Workers Static Assets**.  
+Текущая публичная главная `/` находится в режиме «сайт скоро откроется», а рабочие лендинги и админка живут отдельными маршрутами.
 
----
+## Что внутри
+
+- публичная заглушка `/` с контактами, Telegram-ссылкой и кнопкой квиза;
+- лендинги `/landing`, `/kids`, `/groups`, `/travel`;
+- черновая страница квиза `/quiz` с deep-link в `@myspanish_space_quiz_bot`;
+- API для заявок и аналитики: `POST /api/leads`, `POST /api/events`;
+- Telegram Login auth для админки: `/auth/login`, `/auth/telegram/callback`, `/auth/logout`;
+- защищённая админка `/admin` с чтением вопросов и результатов из `QUIZ_DB`;
+- D1-хранилище сайта (`DB`) для заявок, событий, отзывов, FAQ и настроек;
+- KV для auth revoke-list и будущего кэша/сессий;
+- R2 binding `MEDIA` для медиа-ассетов.
 
 ## Быстрый старт
 
 ```bash
+cd myspanish.space
 yarn install
 yarn dev
 ```
 
-Откройте `http://localhost:5173`.
+Vite dev-сервер: `http://localhost:5173`.
 
-> В режиме `dev` нет доступа к D1/KV/R2 — страница покажет fallback-данные.  
-> Для полноценной локальной разработки с D1 используйте `wrangler pages dev`.
-
----
-
-## Cloudflare Bindings
-
-| Binding | Тип    | Имя/ID              |
-|---------|--------|---------------------|
-| `DB`    | D1     | `myspanish-db`      |
-| `KV`    | KV     | `myspanish-kv`      |
-| `MEDIA` | R2     | `myspanish-media`   |
-
-Перед деплоем замените `REPLACE_WITH_YOUR_D1_DATABASE_ID` и `REPLACE_WITH_YOUR_KV_NAMESPACE_ID` в `wrangler.toml` на реальные ID ресурсов.
-
-Создать ресурсы:
+В обычном `yarn dev` Cloudflare bindings недоступны, поэтому часть данных берётся из fallback-значений. Для проверки Worker-окружения используйте Wrangler:
 
 ```bash
-wrangler d1 create myspanish-db
-wrangler kv namespace create myspanish-kv
-wrangler r2 bucket create myspanish-media
-```
-
----
-
-## Миграции D1
-
-```bash
-# Применить миграции (production)
-npm run db:migrate
-
-# Применить миграции (local)
-npm run db:migrate:local
-
-# Залить seed-данные (production)
-npm run db:seed
-
-# Залить seed-данные (local)
-npm run db:seed:local
-```
-
----
-
-## Сборка и деплой
-
-```bash
-# Сборка
+cd myspanish.space
 yarn build
-
-# Деплой на Cloudflare Pages
-yarn deploy
-# или
-wrangler pages deploy .svelte-kit/cloudflare
+npx wrangler dev
 ```
 
----
+Локальные секреты для Wrangler задаются в `.dev.vars` по примеру `.dev.vars.example`.
 
-## API endpoints
+## Скрипты
+
+| Команда | Назначение |
+|---|---|
+| `yarn dev` | локальный Vite dev-сервер |
+| `yarn check` | `svelte-kit sync` + `svelte-check` |
+| `yarn build` | сборка SvelteKit под Cloudflare |
+| `yarn preview` | локальный preview Vite |
+| `yarn db:migrate:local` | применить D1-миграции локально |
+| `yarn db:seed:local` | залить `migrations/seed.sql` локально |
+| `yarn db:migrate` | применить D1-миграции к remote `myspanish-db` |
+| `yarn db:seed` | залить seed в remote `myspanish-db` |
+| `yarn deploy` | `yarn build && wrangler deploy` |
+
+По правилам репозитория `build`, `wrangler`, remote-миграции и деплой запускаются только по явной задаче OWNER.
+
+## Cloudflare
+
+Основной конфиг для деплоя: `wrangler.jsonc`.
+
+| Binding / настройка | Тип | Текущее значение |
+|---|---|---|
+| Worker | Workers Static Assets | `myspanish-space` |
+| Routes | custom domain | `myspanish.space/*`, `www.myspanish.space/*` |
+| `DB` | D1 | `myspanish-db` / `1c0b6112-e90b-48df-93ea-358f0422f3f8` |
+| `QUIZ_DB` | D1 | `myspanish-quiz-db` / `90a9dfa5-f1c6-4bfd-86a8-b42426dffa43` |
+| `KV` | KV | `16bb1af5cb65422c80382a688715df8d` |
+| `MEDIA` | R2 | `myspanish-media` |
+| `PUBLIC_TELEGRAM_LOGIN_BOT_USERNAME` | var | `myspanish_space_quiz_bot` |
+| `ADMIN_TELEGRAM_USERNAMES` | var | `PavarenkinDA` |
+
+`wrangler.toml` остался как старый Pages-конфиг. Актуальный путь проекта по ADR/runbook: `wrangler deploy` через `wrangler.jsonc`.
+
+### Секреты
+
+Для auth нужны Worker secrets или локальные значения в `.dev.vars`:
+
+```dotenv
+AUTH_SECRET=
+TELEGRAM_LOGIN_BOT_TOKEN=
+TELEGRAM_LOGIN_BOT_USERNAME=myspanish_space_quiz_bot
+PUBLIC_TELEGRAM_LOGIN_BOT_USERNAME=myspanish_space_quiz_bot
+ADMIN_TELEGRAM_IDS=
+ADMIN_TELEGRAM_USERNAMES=PavarenkinDA
+```
+
+`AUTH_SECRET` подписывает cookie `mss_session`. `TELEGRAM_LOGIN_BOT_TOKEN` используется только для проверки подписи Telegram Login Widget.
+
+## Маршруты
+
+| Route | Статус | Назначение |
+|---|---|---|
+| `/` | публично, `noindex` | временная страница «сайт скоро откроется» |
+| `/landing` | публично, `index` | основной лендинг «Испанский с мамой» |
+| `/kids` | публично, `index` | индивидуальные уроки для детей 7-17 лет |
+| `/groups` | публично, `index` | групповые занятия для детей |
+| `/travel` | публично, `noindex` | черновой лендинг «испанский для путешествий» |
+| `/quiz` | публично, `noindex` | teaser квеста с переходом в Telegram-бот |
+| `/auth/login` | публично | Telegram Login Widget |
+| `/auth/telegram/callback` | публично | проверка Telegram payload и выдача сессии |
+| `/auth/logout` | auth | отзыв текущей сессии через KV |
+| `/admin` | admin only | вопросы и результаты квиза из `QUIZ_DB` |
+
+## API
 
 ### `POST /api/leads`
-Сохраняет заявку в D1.
+
+Сохраняет заявку в `DB.leads`, требует `name` и `consent: true`, дополнительно пишет событие `form_submit`.
 
 ```json
 {
@@ -82,50 +110,72 @@ wrangler pages deploy .svelte-kit/cloudflare
   "phone": "+7 900 000 0000",
   "telegram": "@maria",
   "email": "maria@example.com",
-  "child_age": "3 года",
-  "message": "Хочу попробовать",
+  "child_age": "8 лет",
+  "message": "Хочу пробный урок",
   "consent": true,
-  "utm_source": "google"
+  "utm_source": "telegram",
+  "utm_medium": "post",
+  "utm_campaign": "launch"
 }
 ```
 
 ### `POST /api/events`
-Трекинг событий аналитики.
+
+Пишет клиентскую аналитику в `DB.events`.
 
 ```json
 {
-  "event_type": "cta_click",
-  "path": "/",
-  "section_id": "hero",
-  "button_id": "hero-cta",
-  "utm_source": "google"
+  "event_type": "quest_click",
+  "path": "/quiz",
+  "section_id": "quiz-teaser",
+  "button_id": "quiz-start",
+  "utm_source": "telegram"
 }
 ```
 
-Допустимые `event_type`: `page_view`, `cta_click`, `form_start`, `form_submit`,
-`whatsapp_click`, `telegram_click`, `free_materials_click`, `price_click`.
+Допустимые `event_type`: `page_view`, `cta_click`, `form_start`, `form_submit`, `whatsapp_click`, `telegram_click`, `free_materials_click`, `price_click`, `quest_click`.
 
----
+## D1
 
-## Структура D1
+Миграции сайта лежат в `migrations/`:
 
-| Таблица          | Назначение                        |
-|------------------|-----------------------------------|
-| `leads`          | Заявки с форм                     |
-| `events`         | Аналитика кликов                  |
-| `testimonials`   | Отзывы (редактируемые)            |
-| `faq_items`      | FAQ (редактируемые)               |
-| `site_settings`  | Настройки сайта (цена, ссылки…)   |
-| `media_assets`   | Метаданные файлов из R2           |
+- `0001_initial.sql` — `leads`, `events`, `testimonials`, `faq_items`, `site_settings`, `media_assets`;
+- `0002_contact_links_fix.sql` — обновляет `site_settings.telegram_link` на `https://t.me/mamaespanola`;
+- `seed.sql` — стартовый контент для отзывов, FAQ и настроек.
 
----
+Админка дополнительно читает `QUIZ_DB` с таблицами квиз-бота (`quiz_questions`, `quiz_options`, `quiz_runs`, `quiz_answers`). Схема `QUIZ_DB` поддерживается в компоненте `quiz-bot`.
 
-## Дальнейшее развитие
+## Интеграция с квиз-ботом
 
-Проект подготовлен к расширению:
+Кнопки квиза ведут в Telegram через `src/lib/links.ts`:
 
-- **Telegram-бот**: добавить Worker с webhook `/api/telegram`
-- **Уведомления**: использовать KV для очереди или Cloudflare Queues
-- **Личный кабинет**: добавить `src/routes/cabinet/` с auth через KV-сессии
-- **Скрытые лендинги**: `src/routes/lp/[slug]/`
-- **A/B-тесты**: через KV-флаги и `platform.env.KV`
+```ts
+https://t.me/myspanish_space_quiz_bot?start=quiz_<source>
+```
+
+Используемые внутрисайтовые sources: `uc`, `web`, `free-materials`, `price` и другие campaign-safe slugs по контракту ARCHITECTOR.
+
+## Структура
+
+```text
+myspanish.space/
+  migrations/             # D1 migrations + seed сайта
+  src/
+    lib/
+      analytics.ts        # клиентский трекинг /api/events
+      links.ts            # Telegram quiz deep-links
+      server/
+        auth.ts           # Telegram Login + session cookie
+        db.ts             # DB helpers сайта
+    routes/
+      api/                # leads/events endpoints
+      auth/               # Telegram auth
+      admin/              # защищённая админка
+      landing|kids|groups|travel|quiz/
+  static/                 # статические файлы
+  wrangler.jsonc          # актуальный Cloudflare Worker config
+```
+
+## Командный протокол
+
+Этот пакет находится в мульти-агентном репозитории. Перед изменениями кода читайте корневые `AGENTS.md`, `ROLES.md`, `PROTOCOL.md`; для `stylist-svelte/src/lib/**` дополнительно обязателен `stylist-svelte/AGENTS.md`.

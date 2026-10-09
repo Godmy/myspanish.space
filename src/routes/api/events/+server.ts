@@ -10,7 +10,8 @@ const VALID_EVENTS: EventType[] = [
 	'whatsapp_click',
 	'telegram_click',
 	'free_materials_click',
-	'price_click'
+	'price_click',
+	'quest_click'
 ];
 
 export const POST: RequestHandler = async ({ request, platform }) => {

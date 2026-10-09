@@ -55,7 +55,7 @@
 						rel="noopener"
 						data-track-id="free-materials-quest"
 						onclick={() =>
-							track('cta_click', {
+							track('quest_click', {
 								button_id: 'quest-free-materials',
 								section_id: 'free-materials'
 							})}
