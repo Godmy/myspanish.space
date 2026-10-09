@@ -56,7 +56,9 @@ jobs:
 
       - name: Install stylist-svelte deps
         working-directory: ../../stylist-svelte
-        run: yarn install --immutable
+        # svelte-kit sync writes .svelte-kit/tsconfig.json, which the library tsconfig
+        # extends; vite needs it to transform library sources during the site build.
+        run: yarn install --immutable && yarn svelte-kit sync
 
       - name: Install site deps
         run: yarn install --immutable
