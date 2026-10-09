@@ -21,20 +21,31 @@ jobs:
       - name: Checkout site
         uses: actions/checkout@v4
 
-      # Библиотека компонентов лежит рядом и подключается по алиасу $stylist
-      # (../stylist-svelte/src/lib). Нужны и её git-сабмодули (theme/svg/...).
-      - name: Checkout stylist-svelte (sibling)
+      # Общая библиотека лежит на два уровня выше сайта (как локально:
+      # D:\2026\cloudflare\stylist-svelte рядом с myspanish.space\myspanish.space)
+      # и подключается через portal + moduleAliases(modules.json).
+      - name: Checkout stylist-svelte (shared library)
         uses: actions/checkout@v4
         with:
           repository: Godmy/stylist-svelte
           path: stylist-svelte-src
-          submodules: recursive
+          submodules: false
           fetch-depth: 1
 
-      - name: Place stylist-svelte as sibling
+      - name: Place stylist-svelte at ../../stylist-svelte
+        run: mv stylist-svelte-src ../../stylist-svelte
+
+      # Публичные модули (design-system, interaction, information, ...) нужны сайту;
+      # приватные без токена недоступны и сайту не нужны — пропускаем их.
+      - name: Init public library modules
+        working-directory: ../../stylist-svelte
+        env:
+          GIT_TERMINAL_PROMPT: '0'
         run: |
-          mv stylist-svelte-src ../stylist-svelte
-          ls ../stylist-svelte/src/lib/theme >/dev/null
+          for path in $(git config -f .gitmodules --get-regexp '\.path$' | awk '{print $2}'); do
+            git submodule update --init --recursive --depth 1 -- "$path" || echo "skip private module: $path"
+          done
+          ls modules/design-system >/dev/null
 
       - uses: actions/setup-node@v4
         with:
@@ -44,8 +55,8 @@ jobs:
         run: corepack enable
 
       - name: Install stylist-svelte deps
-        working-directory: ../stylist-svelte
-        run: yarn install --immutable && yarn svelte-kit sync
+        working-directory: ../../stylist-svelte
+        run: yarn install --immutable
 
       - name: Install site deps
         run: yarn install --immutable
