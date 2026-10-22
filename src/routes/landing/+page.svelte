@@ -79,7 +79,7 @@
 	<\/script>`}
 </svelte:head>
 
-<Header />
+<Header sections={['for-whom', 'author', 'what-awaits', 'program', 'benefits', 'price', 'testimonials', 'faq', 'contact']} />
 
 <main>
 	<Hero />

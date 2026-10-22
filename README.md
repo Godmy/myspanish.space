@@ -6,7 +6,8 @@
 ## Что внутри
 
 - публичная заглушка `/` с контактами, Telegram-ссылкой и кнопкой квиза;
-- лендинги `/landing`, `/kids`, `/groups`, `/travel`;
+- лендинги `/landing`, `/kids`, `/groups`, `/travel` с общей шапкой и мобильным меню в стиле Google apps;
+- переключение языка интерфейса RU / ES / EN (`POST /lang`, cookie `lang`);
 - черновая страница квиза `/quiz` с deep-link в `@myspanish_space_quiz_bot`;
 - API для заявок и аналитики: `POST /api/leads`, `POST /api/events`;
 - Telegram Login auth для админки: `/auth/login`, `/auth/telegram/callback`, `/auth/logout`;
@@ -23,7 +24,7 @@ yarn install
 yarn dev
 ```
 
-Vite dev-сервер: `http://localhost:5173`.
+Vite dev-сервер: `http://localhost:5176` (`strictPort`).
 
 В обычном `yarn dev` Cloudflare bindings недоступны, поэтому часть данных берётся из fallback-значений. Для проверки Worker-окружения используйте Wrangler:
 
@@ -93,10 +94,41 @@ ADMIN_TELEGRAM_USERNAMES=PavarenkinDA
 | `/groups` | публично, `index` | групповые занятия для детей |
 | `/travel` | публично, `noindex` | черновой лендинг «испанский для путешествий» |
 | `/quiz` | публично, `noindex` | teaser квеста с переходом в Telegram-бот |
+| `/lang` | публично, `POST` | смена языка интерфейса: cookie `lang`, возврат на ту же страницу |
 | `/auth/login` | публично | Telegram Login Widget |
 | `/auth/telegram/callback` | публично | проверка Telegram payload и выдача сессии |
 | `/auth/logout` | auth | отзыв текущей сессии через KV |
 | `/admin` | admin only | вопросы и результаты квиза из `QUIZ_DB` |
+
+## Шапка, меню и язык
+
+`src/lib/components/Header.svelte` — общая шапка лендингов. Страница передаёт якоря своих разделов в порядке следования:
+
+```svelte
+<Header sections={['for-whom', 'program', 'price', 'faq', 'contact']} />
+```
+
+- **До 1200px** — верхняя панель в стиле Google apps: бургер, логотип, аватар или «Войти». Бургер открывает лист `SchoolAppMenu` (Activity из `stylist-svelte`).
+- **Шире 1200px** — ссылки на курсы и ключевые разделы (то, что не помещается, скрывается — полный список есть в меню), переключатель RU/ES/EN, вход и «Пробный урок».
+
+Граф меню строит `createSchoolMenu` из домена `$stylist/spanish`:
+
+```text
+Меню: [Пробный урок] · Войти / Выйти
+ ├─ На этой странице → якоря из `sections`
+ ├─ Обучение   → /kids · /groups · /landing · /travel
+ ├─ Бесплатно  → /quiz · Telegram-канал
+ ├─ Кабинет (после входа, по роли)
+ │    student: расписание, ДЗ, прогресс, материалы, оплата
+ │    parent:  дети, расписание, отчёты, оплата
+ │    teacher: расписание, ученики, группы, проверка ДЗ, материалы
+ │    admin:   /admin
+ └─ Язык → RU / ES / EN
+```
+
+Пункты кабинета без страниц показаны неактивными с пометкой «скоро»; когда страница появится, добавьте её id в параметр `ready` вызова `createSchoolMenu` в шапке. Вход через Telegram пока выдаёт только роль `admin` (`roleForTelegramUser`).
+
+Язык: `hooks.server.ts` читает cookie `lang` (`src/lib/locale.ts`) в `locals.locale` и подставляет его в `<html lang="%lang%">`; `+layout.server.ts` отдаёт `viewer` и `locale` в шапку. Переводятся меню и шапка, тексты страниц пока только на русском.
 
 ## API
 
@@ -163,6 +195,8 @@ myspanish.space/
   src/
     lib/
       analytics.ts        # клиентский трекинг /api/events
+      locale.ts           # cookie `lang` → язык интерфейса
+      components/Header.svelte  # шапка + мобильное меню SchoolAppMenu
       links.ts            # Telegram quiz deep-links
       server/
         auth.ts           # Telegram Login + session cookie
@@ -171,6 +205,7 @@ myspanish.space/
       api/                # leads/events endpoints
       auth/               # Telegram auth
       admin/              # защищённая админка
+      lang/               # POST: смена языка
       landing|kids|groups|travel|quiz/
   static/                 # статические файлы
   wrangler.jsonc          # актуальный Cloudflare Worker config

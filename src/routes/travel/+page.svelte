@@ -26,7 +26,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<Header />
+<Header sections={['contact']} />
 
 <main>
 	<TravelHero />

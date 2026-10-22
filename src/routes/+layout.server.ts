@@ -1,11 +1,16 @@
 import type { LayoutServerLoad } from './$types';
 import { getTestimonials, getFaqItems, getSiteSettings } from '$lib/server/db';
 
-export const load: LayoutServerLoad = async ({ platform }) => {
+export const load: LayoutServerLoad = async ({ platform, locals }) => {
 	const db = platform?.env?.DB;
+	// The header menu shows the cabinet of the role and the chosen language.
+	const viewer = locals.user ? { name: locals.user.name, role: locals.user.role } : null;
+	const locale = locals.locale;
 
 	if (!db) {
 		return {
+			viewer,
+			locale,
 			testimonials: [],
 			faqItems: [],
 			settings: {
@@ -23,5 +28,5 @@ export const load: LayoutServerLoad = async ({ platform }) => {
 		getSiteSettings(db)
 	]);
 
-	return { testimonials, faqItems, settings };
+	return { viewer, locale, testimonials, faqItems, settings };
 };

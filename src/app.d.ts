@@ -1,4 +1,5 @@
 import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
+import type { SchoolLocale } from '$stylist/spanish/type/alias/school-locale';
 
 declare global {
 	namespace App {
@@ -12,6 +13,8 @@ declare global {
 				iat: number;
 				exp: number;
 			} | null;
+			/** Interface language from the `lang` cookie; `ru` by default. */
+			locale: SchoolLocale;
 		}
 		interface Platform {
 			env: {
