@@ -1,6 +1,2 @@
-import type { PageServerLoad } from './$types';
-
-export const load: PageServerLoad = async ({ parent }) => {
-	const data = await parent();
-	return data;
-};
+import { redirect } from '@sveltejs/kit';
+export const load=()=>redirect(303,'/directions/with-mum');

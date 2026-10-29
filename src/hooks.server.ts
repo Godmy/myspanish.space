@@ -29,11 +29,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event, {
-		transformPageChunk: ({ html }) => html.replace('%lang%', event.locals.locale)
+		transformPageChunk: ({ html }) => html.replace('%lang%', event.locals.locale),
 	});
-	if (event.url.pathname.startsWith('/admin')) {
+	if (
+		['/admin', '/account', '/staff', '/login', '/api/school'].some((prefix) =>
+			event.url.pathname.startsWith(prefix),
+		)
+	) {
 		response.headers.set('Cache-Control', 'no-store');
 		response.headers.set('X-Content-Type-Options', 'nosniff');
 	}
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'same-origin');
 	return response;
 };

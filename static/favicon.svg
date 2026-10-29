@@ -1,3 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <text y="26" font-size="28">🌞</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="20" fill="#b9321d"/><circle cx="46" cy="18" r="9" fill="#ffce52"/><path d="M23 17h8l-1 26h-6zm.5 32a4 4 0 1 1 8 0 4 4 0 0 1-8 0" fill="#fffaf3"/></svg>

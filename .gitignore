@@ -32,3 +32,22 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local school data and QA artifacts
+.school-data/
+.test-data/
+test-results/
+playwright-report/
+
+.svelte-kit-school/
+
+.school-production/
+build-node/
+.school-build.log
+.school-node-build.log
+
+.svelte-kit-e2e/
+
+production.env
+
+.preview.local/

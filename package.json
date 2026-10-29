@@ -14,11 +14,27 @@
     "db:migrate:local": "wrangler d1 migrations apply myspanish-db --local",
     "db:seed": "wrangler d1 execute myspanish-db --file=./migrations/seed.sql",
     "db:seed:local": "wrangler d1 execute myspanish-db --local --file=./migrations/seed.sql",
-    "deploy": "yarn build && wrangler deploy"
+    "deploy": "yarn build && wrangler deploy",
+    "test": "node --experimental-strip-types --test tests/school.test.ts",
+    "db:school:init": "node --experimental-strip-types scripts/school/init.ts",
+    "archive:preview": "node --experimental-strip-types scripts/school/import.ts preview",
+    "archive:import": "node --experimental-strip-types scripts/school/import.ts apply",
+    "test:e2e": "node scripts/school/browser-test.mjs",
+    "build:node": "node scripts/school/build-node.mjs",
+    "start:node": "node scripts/school/start-node.mjs",
+    "user:create": "node --experimental-strip-types scripts/school/provision-user.ts",
+    "db:school:migrate": "node --experimental-strip-types scripts/school/init.ts --schema-only",
+    "test:production": "node --experimental-strip-types scripts/school/production-smoke.ts",
+    "deploy:preview": "yarn build && wrangler deploy --config wrangler.preview.jsonc",
+    "check:worker": "tsc --noEmit --project cloudflare/tsconfig.json",
+    "test:preview": "node --experimental-strip-types --test tests/cloud-preview.test.ts tests/school.test.ts",
+    "test:preview:remote": "node scripts/school/preview-smoke.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260908.1",
+    "@playwright/test": "1.63.0",
     "@sveltejs/adapter-cloudflare": "^7.2.9",
+    "@sveltejs/adapter-node": "5",
     "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@types/node": "^26.5.0",
@@ -30,5 +46,8 @@
   },
   "dependencies": {
     "stylist-svelte": "portal:../../stylist-svelte"
+  },
+  "engines": {
+    "node": ">=24.11.0"
   }
 }

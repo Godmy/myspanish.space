@@ -1,71 +1,30 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { saveLead } from '$lib/server/db';
-import { trackEvent, hashIp, getClientIp } from '$lib/server/analytics';
-
-export const POST: RequestHandler = async ({ request, platform }) => {
-	const db = platform?.env?.DB;
-	if (!db) {
-		return json({ error: 'Database unavailable' }, { status: 503 });
-	}
-
-	let body: Record<string, unknown>;
+import { json, type RequestHandler } from '@sveltejs/kit';
+import { schoolBackend } from '$lib/server/school/backend';
+import { SchoolError } from '$lib/server/school/types';
+export const POST: RequestHandler = async (event) => {
 	try {
-		body = await request.json();
-	} catch {
-		return json({ error: 'Invalid JSON' }, { status: 400 });
-	}
-
-	const name = String(body.name ?? '').trim();
-	if (!name) {
-		return json({ error: 'Поле "Имя" обязательно' }, { status: 422 });
-	}
-
-	const consent = Boolean(body.consent);
-	if (!consent) {
-		return json({ error: 'Необходимо согласие на обработку данных' }, { status: 422 });
-	}
-
-	const ip = getClientIp(request);
-	const ip_hash = await hashIp(ip);
-
-	const url = new URL(request.url);
-	const utm_source = body.utm_source as string | undefined;
-	const utm_medium = body.utm_medium as string | undefined;
-	const utm_campaign = body.utm_campaign as string | undefined;
-
-	try {
-		const leadId = await saveLead(db, {
-			name,
-			phone: body.phone as string | undefined,
-			telegram: body.telegram as string | undefined,
-			email: body.email as string | undefined,
-			child_age: body.child_age as string | undefined,
-			message: body.message as string | undefined,
-			consent,
-			utm_source,
-			utm_medium,
-			utm_campaign,
-			referrer: request.headers.get('referer') ?? undefined,
-			ip_hash
+		if (event.request.headers.get('origin') !== event.url.origin)
+			return json({ message: 'Источник запроса не разрешён.' }, { status: 403 });
+		const raw = await event.request.text();
+		if (raw.length > 12000) return json({ message: 'Заявка слишком большая.' }, { status: 413 });
+		let body;
+		try {
+			body = JSON.parse(raw);
+		} catch {
+			return json({ message: 'Некорректный JSON.' }, { status: 400 });
+		}
+		if (!body || typeof body !== 'object' || Array.isArray(body))
+			return json({ message: 'Проверьте формат заявки.' }, { status: 422 });
+		const school = await schoolBackend(event);
+		return json({
+			success: true,
+			...await school.enquiry(
+				{ ...body, contact: body.contact ?? body.email ?? body.phone ?? body.telegram }
+			),
 		});
-
-		await trackEvent(db, {
-			event_type: 'form_submit',
-			path: url.pathname,
-			section_id: body.section_id as string | undefined,
-			button_id: 'lead-form',
-			utm_source,
-			utm_medium,
-			utm_campaign,
-			referrer: request.headers.get('referer') ?? undefined,
-			user_agent: request.headers.get('user-agent') ?? undefined,
-			ip_hash
-		});
-
-		return json({ success: true, id: leadId });
-	} catch (err) {
-		console.error('Lead save error:', err);
-		return json({ error: 'Ошибка сохранения' }, { status: 500 });
+	} catch (e) {
+		if (e instanceof SchoolError) return json({ message: e.message }, { status: e.status });
+		console.error('school.enquiry.failed');
+		return json({ message: 'Не удалось сохранить заявку.' }, { status: 500 });
 	}
 };
