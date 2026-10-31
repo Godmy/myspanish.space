@@ -51,3 +51,7 @@ build-node/
 production.env
 
 .preview.local/
+
+# Source archive exports stay private and are uploaded through authenticated import.
+.school-import/
+.school-transfer/

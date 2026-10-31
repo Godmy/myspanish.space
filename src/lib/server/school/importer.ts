@@ -85,7 +85,7 @@ export async function previewImport(csv: string, sourceId: string, root?: string
 	for (let i = 0; i < rows.length; i++) {
 		const values = rows[i],
 			original = values[pathIndex] ?? '',
-			path = original.replace(/\\/g, '/').normalize('NFC');
+			path = original.replace(/\\/g, '/');
 		if (
 			!path ||
 			isAbsolute(path) ||

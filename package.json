@@ -27,8 +27,10 @@
     "test:production": "node --experimental-strip-types scripts/school/production-smoke.ts",
     "deploy:preview": "yarn build && wrangler deploy --config wrangler.preview.jsonc",
     "check:worker": "tsc --noEmit --project cloudflare/tsconfig.json",
-    "test:preview": "node --experimental-strip-types --test tests/cloud-preview.test.ts tests/school.test.ts",
-    "test:preview:remote": "node scripts/school/preview-smoke.mjs"
+    "test:preview": "node --experimental-strip-types --test tests/archive.test.ts tests/cloud-preview.test.ts tests/school.test.ts",
+    "test:preview:remote": "node scripts/school/preview-smoke.mjs",
+    "archive:export": "python scripts/school/export-archive.py",
+    "archive:apply": "node --experimental-strip-types scripts/school/import-archive.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260908.1",

@@ -173,7 +173,7 @@ export class SchoolService {
 	}
 	publicCourses(query = '') {
 		return this.db.all(
-			"SELECT * FROM school.courses WHERE publication='published' AND (title LIKE ? OR summary LIKE ?) ORDER BY demo DESC,title",
+			"SELECT * FROM school.courses WHERE (publication='published' OR EXISTS(SELECT 1 FROM school.archive_programs ap WHERE ap.course_id=school.courses.id)) AND (id NOT IN ('phonetics','songs','with-mum','themes','marathons') OR NOT EXISTS(SELECT 1 FROM school.archive_programs)) AND (title LIKE ? OR summary LIKE ?) ORDER BY demo DESC,title",
 			`%${query.slice(0, 100)}%`,
 			`%${query.slice(0, 100)}%`,
 		);
@@ -186,14 +186,17 @@ export class SchoolService {
 			if (user) this.student(user, studentId);
 			if (!user || !this.access(studentId, course.id) || course.publication !== 'published')
 				throw new SchoolError(404, 'Курс не назначен или недоступен.');
-		} else if (course.publication !== 'published')
+		} else if (course.publication !== 'published' && !this.db.one('SELECT course_id FROM school.archive_programs WHERE course_id=?',course.id))
 			throw new SchoolError(404, 'Направление не найдено.');
+		if(!preview&&!studentId&&course.publication!=='published')return {...course,modules:[]};
 		return {
 			...course,
 			modules: this.db
 				.all('SELECT * FROM school.modules WHERE course_id=? ORDER BY position', course.id)
 				.map((m) => ({
 					...m,
+					bankCount:preview?this.db.one('SELECT COUNT(*) n FROM school.archive_module_materials WHERE module_id=?',m.id)?.n:0,
+					bank:preview?this.db.all("SELECT m.id,m.title,m.missing FROM school.archive_module_materials am JOIN school.materials m ON m.id=am.material_id WHERE am.module_id=? AND m.privacy!='restricted' ORDER BY am.position LIMIT 30",m.id):[],
 					lessons: this.db.all(
 						`SELECT l.id,l.title,l.position,l.publication,${studentId ? 'EXISTS(SELECT 1 FROM school.completions c WHERE c.lesson_id=l.id AND c.student_id=?)' : '0'} AS completed FROM school.lessons l WHERE module_id=? ${preview ? '' : "AND publication='published'"} ORDER BY position`,
 						...(studentId ? [studentId, m.id] : [m.id]),
@@ -508,6 +511,8 @@ export class SchoolService {
 			clauses = ['(m.title LIKE ? OR m.description LIKE ?)'],
 			params: any[] = [`%${query}%`, `%${query}%`];
 		const staff = user && ['admin', 'teacher'].includes(user.role) && !opts.publicOnly;
+		if(staff&&user?.role==='teacher')clauses.push("m.privacy!='restricted'");
+		if(staff&&opts.folder){clauses.push('m.id IN (SELECT am.material_id FROM school.archive_materials am WHERE am.folder_id IN (WITH RECURSIVE tree(id) AS (SELECT id FROM school.archive_folders WHERE id=? UNION ALL SELECT f.id FROM school.archive_folders f JOIN tree t ON f.parent_id=t.id) SELECT id FROM tree))');params.push(String(opts.folder));}
 		if (!staff) {
 			clauses.push(
 				"m.publication='published' AND m.editorial='checked' AND (m.rights='public_allowed' AND m.privacy='public'" +
@@ -518,6 +523,7 @@ export class SchoolService {
 			);
 			if (opts.studentId) params.push(opts.studentId, new Date().toISOString());
 		}
+		if(staff&&opts.module){clauses.push('m.id IN (SELECT material_id FROM school.archive_module_materials WHERE module_id=?)');params.push(String(opts.module));}
 		if (opts.lessonId) {
 			clauses.push(
 				'EXISTS(SELECT 1 FROM school.lesson_materials lm WHERE lm.lesson_id=? AND lm.material_id=m.id)',
@@ -586,7 +592,7 @@ export class SchoolService {
 	}
 	materialAccess(user: User | null, id: string, studentId?: string) {
 		if (user && ['teacher', 'admin'].includes(user.role))
-			return !!this.db.one('SELECT id FROM school.materials WHERE id=?', id);
+			return !!this.db.one("SELECT id FROM school.materials WHERE id=?"+(user.role==='teacher'?" AND privacy!='restricted'":''), id);
 		if (studentId && user) this.student(user, studentId);
 		const item = this.db.one(
 			"SELECT * FROM school.materials WHERE id=? AND publication='published' AND editorial='checked'",
@@ -1234,7 +1240,7 @@ export class SchoolService {
 				throw new SchoolError(422, 'Выберите от 1 до 100 записей.');
 			for (const id of ids) {
 				const material = this.db.one('SELECT * FROM school.materials WHERE id=?', id);
-				if (!material) throw new SchoolError(404, 'Материал не найден.');
+				if (!material || !this.materialAccess(actor,id)) throw new SchoolError(404, 'Материал не найден.');
 				if (command === 'bulkMaterial') {
 					this.db.run(
 						'UPDATE school.materials SET topic=? WHERE id=?',

@@ -4,6 +4,7 @@ import { getSchool } from './runtime.ts';
 import { previewClient,unwrapPreview } from './preview-client.ts';
 import { buildSchoolView } from './view-model.ts';
 import { previewImport,applyImport } from './importer.ts';
+import { importArchiveBatch } from './archive.ts';
 import type { Row } from './types.ts';
 
 export async function schoolBackend(event:RequestEvent){
@@ -11,6 +12,7 @@ export async function schoolBackend(event:RequestEvent){
  let ip=event.request.headers.get('CF-Connecting-IP')??'preview-local';try{ip=event.getClientAddress();}catch{}
  if(remote)return {
   development:true,
+  async archive(data:Row){return unwrapPreview(await remote.archiveImport(token,data));},
   async view(){return unwrapPreview(await remote.view(token,event.url.pathname,Object.fromEntries(event.url.searchParams)));},
   async login(data:Row){if(!data.userId)throw new (await import('./types.ts')).SchoolError(422,'В закрытом preview используйте карточку демонстрационной роли.');return unwrapPreview(await remote.login(String(data.userId)));},
   async logout(){return unwrapPreview(await remote.logout(token));},
@@ -23,6 +25,7 @@ export async function schoolBackend(event:RequestEvent){
  const service=await getSchool(),user=service.user(token);
  return {
   development:service.development,
+  async archive(data:Row){return importArchiveBatch(service,user,data);},
   async view(){return buildSchoolView(service,user,event.url.pathname,event.url.searchParams);},
   async login(data:Row){return service.development&&data.userId?service.login(String(data.userId)):service.authenticate(data.login,data.password,ip);},
   async logout(){return service.logout(token);},

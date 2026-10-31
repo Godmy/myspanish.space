@@ -65,5 +65,7 @@ export async function openSchoolDatabase(directory = resolve('.school-data')) {
 		db.exec(readFileSync(resolve('database/migrations/008_files.sql'), 'utf8'));
 	if (!db.prepare('SELECT 1 FROM schema_migrations WHERE version=9').get())
 		db.exec(readFileSync(resolve('database/migrations/009_lead_ownership.sql'), 'utf8'));
+	if (!db.prepare('SELECT 1 FROM schema_migrations WHERE version=10').get())
+		db.exec(readFileSync(resolve('database/migrations/010_archive.sql'), 'utf8'));
 	return new SchoolDatabase(db, directory);
 }

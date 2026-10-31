@@ -1,3 +1,4 @@
+import { importArchiveBatch } from '../src/lib/server/school/archive';
 import { DurableObject } from 'cloudflare:workers';
 import schema from './preview-schema.sql';
 import { PreviewSqlStore } from './sql-store';
@@ -15,6 +16,7 @@ export class SchoolPreview extends DurableObject<PreviewEnv> {
  }
  private async result(callback:()=>any){try{return {ok:true,value:await callback()};}catch(e){if(e instanceof SchoolError)return {ok:false,status:e.status,message:e.message};console.error(JSON.stringify({event:'preview.operation.failed',type:e instanceof Error?e.name:'unknown',message:e instanceof Error?e.message:'unknown'}));return {ok:false,status:500,message:'Не удалось выполнить операцию preview.'};}}
  async view(token:string,path:string,query:Record<string,string>){return this.result(()=>buildSchoolView(this.school,this.school.user(token),path,new URLSearchParams(query)));}
+ async archiveImport(token:string,data:Row){return this.result(()=>importArchiveBatch(this.school,this.school.user(token),data));}
  async login(userId:string){return this.result(()=>this.school.login(userId));}
  async logout(token:string){return this.result(()=>this.school.logout(token));}
  async enquiry(data:Row,ip:string){return this.result(()=>this.school.enquire(data,ip));}

@@ -7,7 +7,8 @@ if(occupied)throw new Error('Test port 5187 is occupied. Stop the previous test 
 const server=spawn(process.execPath,['scripts/school/e2e-server.mjs'],{stdio:['ignore','pipe','pipe'],windowsHide:true});
 let log='';server.stdout.on('data',b=>{log+=b.toString();});server.stderr.on('data',b=>{log+=b.toString();});
 try{
- let ready=false;for(let i=0;i<480;i++){try{if((await fetch(base)).ok){ready=true;break;}}catch{}if(server.exitCode!==null)break;await setTimeout(250);}
+ // A cold dependency scan on the Windows workspace can take over three minutes.
+ let ready=false;for(let i=0;i<1200;i++){try{if((await fetch(base)).ok){ready=true;break;}}catch{}if(server.exitCode!==null)break;await setTimeout(250);}
  if(!ready)throw new Error('Browser test server failed to start. '+log.slice(-3000));
  const tests=spawn(process.execPath,[require.resolve('@playwright/test/cli'),'test',...process.argv.slice(2)],{stdio:'inherit',windowsHide:true});
  const code=await new Promise(resolve=>tests.once('exit',resolve));process.exitCode=typeof code==='number'?code:1;

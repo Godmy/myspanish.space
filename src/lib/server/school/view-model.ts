@@ -1,9 +1,10 @@
+import { archiveView } from './archive.ts';
 import type { SchoolService } from './service.ts';
 import { SchoolError,type User,type Row } from './types.ts';
 export function buildSchoolView(service:SchoolService,user:User|null,path:string,searchParams:URLSearchParams){
 		const parts=path.split('/').filter(Boolean),staff=parts[0]==='staff',account=parts[0]==='account';
 		if (
-			!/^\/(?:directions(?:\/[^/]+)?|how-it-works|teacher|free-materials(?:\/[^/]+)?|faq|contacts|demo(?:\/[^/]+)?|legal\/(?:privacy|terms)|login|account(?:\/(?:courses|lessons|homework|schedule|materials|profile|children)(?:\/[^/]+)?)?|staff(?:\/(?:students|groups|courses|lessons|review|library|leads|schedule|settings)(?:\/[^/]+)?(?:\/(?:edit|preview))?)?)?$/.test(
+			!/^\/(?:directions(?:\/[^/]+)?|how-it-works|teacher|free-materials(?:\/[^/]+)?|faq|contacts|demo(?:\/[^/]+)?|legal\/(?:privacy|terms)|login|account(?:\/(?:courses|lessons|homework|schedule|materials|profile|children)(?:\/[^/]+)?)?|staff(?:\/(?:students|groups|courses|lessons|review|library|leads|schedule|settings|archive)(?:\/[^/]+)?(?:\/(?:edit|preview))?)?)?$/.test(
 				path,
 			)
 		)
@@ -85,6 +86,7 @@ export function buildSchoolView(service:SchoolService,user:User|null,path:string
 				result.catalog = service.materials(user, { ...result.query, studentId });
 			if (parts[1] === 'profile') result.profile = user;
 		} else if (staff && user) {
+			if(parts[1]==='archive'){result.archive=archiveView(service,user,searchParams.get('folder')??undefined);if(result.archive.folder)result.catalog=service.materials(user,{...result.query,folder:result.archive.folder.id});return {school:result};}
 			result.students = service.students(user);
 			result.groupMembers=service.db.all('SELECT gm.* FROM school.group_members gm JOIN school.groups g ON g.id=gm.group_id '+(user.role==='admin'?'':'WHERE g.teacher_id=?'),...(user.role==='admin'?[]:[user.id]));
 			result.courses = service.db.all(
@@ -152,8 +154,9 @@ export function buildSchoolView(service:SchoolService,user:User|null,path:string
 				result.catalog = service.materials(user, result.query);
 				if (parts[2] && parts[2] !== 'import') {
 					result.material = service.db.one('SELECT * FROM school.materials WHERE id=?', parts[2]);
-					if (!result.material) throw new SchoolError(404, 'Материал не найден.');
+					if (!result.material || !service.materialAccess(user,result.material.id)) throw new SchoolError(404, 'Материал не найден.');
 				}
+				if(result.material){const archive=service.db.one('SELECT * FROM school.archive_materials WHERE material_id=?',result.material.id);if(archive)result.materialArchive={...archive,metadata:JSON.parse(archive.metadata)};}
 				result.importRuns = service.db.all(
 					'SELECT * FROM school.import_runs ORDER BY created_at DESC LIMIT 20',
 				);
