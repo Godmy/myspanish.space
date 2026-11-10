@@ -11,7 +11,7 @@
   "preview_urls": false,
   "routes": [],
   "assets": {
-    "directory": ".svelte-kit-school/output/client",
+    "directory": ".svelte-kit-school-preview/cloudflare",
     "binding": "ASSETS",
     "run_worker_first": true
   },

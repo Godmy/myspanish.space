@@ -21,7 +21,7 @@ export async function schoolAction(event: RequestEvent) {
 		for (const key of ['consent', 'submit', 'notifications'])
 			data[key] = data[key] === 'true' || data[key] === 'on';
 		const command = String(data.command ?? '');
-		values=Object.fromEntries(['text','name','contact'].filter(key=>typeof data[key]==='string').map(key=>[key,String(data[key]).slice(0,12000)]));
+		values=Object.fromEntries(['text','name','contact','direction'].filter(key=>typeof data[key]==='string').map(key=>[key,String(data[key]).slice(0,12000)]));
 		if (command === 'login') {
 			const {token,user:viewer}=await backend.login(data);
 			event.cookies.set('school_session', token, {
@@ -42,7 +42,7 @@ export async function schoolAction(event: RequestEvent) {
 			await backend.enquiry(data);
 			return {
 				success:
-					'Заявка сохранена. Она появилась в рабочем кабинете школы. Письмо не отправлялось.',
+					'Заявка сохранена. Свяжемся с вами по указанному контакту и отдельно согласуем время знакомства.',
 			};
 		}
 		if (command === 'previewImport' || command === 'applyImport') {

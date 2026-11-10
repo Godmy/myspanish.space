@@ -4,7 +4,7 @@ import { SchoolError,type User,type Row } from './types.ts';
 export function buildSchoolView(service:SchoolService,user:User|null,path:string,searchParams:URLSearchParams){
 		const parts=path.split('/').filter(Boolean),staff=parts[0]==='staff',account=parts[0]==='account';
 		if (
-			!/^\/(?:directions(?:\/[^/]+)?|how-it-works|teacher|free-materials(?:\/[^/]+)?|faq|contacts|demo(?:\/[^/]+)?|legal\/(?:privacy|terms)|login|account(?:\/(?:courses|lessons|homework|schedule|materials|profile|children)(?:\/[^/]+)?)?|staff(?:\/(?:students|groups|courses|lessons|review|library|leads|schedule|settings|archive)(?:\/[^/]+)?(?:\/(?:edit|preview))?)?)?$/.test(
+			!/^\/(?:directions(?:\/[^/]+)?|how-it-works|teacher|free-materials(?:\/[^/]+)?|faq|contacts|demo(?:\/[^/]+)?|legal\/(?:privacy|consent|terms|refund)|login|account(?:\/(?:courses|lessons|homework|schedule|materials|profile|children)(?:\/[^/]+)?)?|staff(?:\/(?:students|groups|courses|lessons|review|library|leads|schedule|settings|archive)(?:\/[^/]+)?(?:\/(?:edit|preview))?)?)?$/.test(
 				path,
 			)
 		)

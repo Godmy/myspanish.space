@@ -8,7 +8,10 @@ import { moduleAliases } from '../../stylist-svelte/scripts/prepare-module-sourc
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const stylistRoot = resolve(projectRoot, '../../stylist-svelte');
 const stylistLib = resolve(stylistRoot, 'src/lib');
-const cloudflareAdapter = adapter({routes:{include:['/*'],exclude:['<all>']}});
+const cloudflareAdapter = adapter({
+	config: process.env.SCHOOL_TARGET === 'cloudflare-preview' ? 'wrangler.build-preview.jsonc' : undefined,
+	routes: { include: ['/*'], exclude: ['<all>'] },
+});
 // Local school storage runs on Node. Avoid starting an unrelated workerd proxy
 // (and locking the Cloudflare build directory) during Vite dev / browser tests.
 cloudflareAdapter.emulate = () => ({});

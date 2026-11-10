@@ -1,0 +1,15 @@
+{
+  // SvelteKit adapter output only. Publish with wrangler.preview.jsonc.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "myspanish-school-preview-build",
+  "main": ".svelte-kit-school-preview/cloudflare/_worker.js",
+  "compatibility_date": "2026-10-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "assets": {
+    "directory": ".svelte-kit-school-preview/cloudflare",
+    "binding": "ASSETS"
+  }
+}

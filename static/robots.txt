@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /staff
+Disallow: /login
+Disallow: /auth/
+Disallow: /admin
+Disallow: /api/
+Disallow: /legal/
+
+Sitemap: https://myspanish.space/sitemap.xml

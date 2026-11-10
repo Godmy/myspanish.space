@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { resolve } from 'node:path';
 import type { SchoolStore } from './store.ts';
+import schoolLegalDocuments from '../../../../../../stylist-svelte/modules/business/spanish/data/json/school-legal-documents/index.json' with { type: 'json' };
 import { SchoolError, type User, type Row, type Exercise } from './types.ts';
 
 export class SchoolService {
@@ -252,6 +253,8 @@ export class SchoolService {
 		};
 	}
 	enquire(data: Row, ip: string) {
+		if (data.consentVersion !== undefined && data.consentVersion !== schoolLegalDocuments.version)
+			throw new SchoolError(422, 'Текст согласия обновлён. Обновите страницу и повторите отправку заявки.');
 		const name = this.text(data.name, 120),
 			contact = this.text(data.contact, 200),
 			direction = this.text(data.direction ?? 'demo-a1', 100);
@@ -298,6 +301,14 @@ export class SchoolService {
 				direction,
 				now,
 				this.development ? 'teacher' : null,
+			);
+			this.db.run(
+				'INSERT INTO school.audit VALUES(?,?,?,?,?)',
+				randomUUID(),
+				'public',
+				`enquiry.consent:${data.consentVersion ?? 'legacy-unversioned'}`,
+				id,
+				now,
 			);
 		});
 		return { id };

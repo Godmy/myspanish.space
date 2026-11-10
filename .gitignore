@@ -40,6 +40,7 @@ test-results/
 playwright-report/
 
 .svelte-kit-school/
+.svelte-kit-school-preview/
 
 .school-production/
 build-node/

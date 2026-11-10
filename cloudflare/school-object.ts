@@ -18,6 +18,7 @@ export class SchoolPreview extends DurableObject<PreviewEnv> {
  async view(token:string,path:string,query:Record<string,string>){return this.result(()=>buildSchoolView(this.school,this.school.user(token),path,new URLSearchParams(query)));}
  async archiveImport(token:string,data:Row){return this.result(()=>importArchiveBatch(this.school,this.school.user(token),data));}
  async login(userId:string){return this.result(()=>this.school.login(userId));}
+ async authenticate(login:unknown,password:unknown,ip:string){return this.result(()=>this.school.authenticate(login,password,ip));}
  async logout(token:string){return this.result(()=>this.school.logout(token));}
  async enquiry(data:Row,ip:string){return this.result(()=>this.school.enquire(data,ip));}
  async attempt(token:string,data:Row){return this.result(()=>this.school.attempt(this.school.user(token),data,data.demo===true));}

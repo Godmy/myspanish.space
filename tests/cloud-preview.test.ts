@@ -6,8 +6,48 @@ import {PreviewSqlStore} from '../cloudflare/sql-store.ts';
 import {seedSchool} from '../src/lib/server/school/seed.ts';
 import {SchoolService} from '../src/lib/server/school/service.ts';
 import {buildSchoolView} from '../src/lib/server/school/view-model.ts';
-import {previewGate} from '../cloudflare/preview-gate.ts';
+import {previewGate,hasPreviewAccess} from '../cloudflare/preview-gate.ts';
 import type {User} from '../src/lib/server/school/types.ts';
+
+test('preview exposes all school documents and preserves versioned enquiry consent', t => {
+ const native = new DatabaseSync(':memory:');
+ t.after(() => native.close());
+ const storage = {
+  sql: { exec(sql: string, ...values: any[]) {
+   const rows = sql.includes(';') && !values.length
+    ? (native.exec(sql), []) : native.prepare(sql).all(...values);
+   return { toArray: () => rows, one: () => rows[0] };
+  } },
+  transactionSync<T>(callback: () => T) {
+   native.exec('BEGIN');
+   try { const result = callback(); native.exec('COMMIT'); return result; }
+   catch (error) { native.exec('ROLLBACK'); throw error; }
+  }
+ };
+ const schema = readFileSync('cloudflare/preview-schema.sql', 'utf8');
+ const store = new PreviewSqlStore(storage as any, schema);
+ seedSchool(store);
+ const service = new SchoolService(store, true);
+ const legal = JSON.parse(readFileSync('../../stylist-svelte/modules/business/spanish/data/json/school-legal-documents/index.json', 'utf8'));
+ for (const slug of Object.keys(legal.documents)) {
+  const path = '/legal/' + slug;
+  assert.equal(buildSchoolView(service, null, path, new URLSearchParams()).school.path, path);
+ }
+ const form = { name: 'Preview test', contact: 'preview@example.test', direction: 'general',
+  consent: true, consentVersion: legal.version, requestKey: 'preview-consent' };
+ const lead = service.enquire(form, 'preview-test');
+ assert.equal(service.enquire(form, 'preview-test').id, lead.id);
+ const restored = new PreviewSqlStore(storage as any, schema);
+ const restoredService = new SchoolService(restored, true);
+ assert.equal(restored.one('SELECT count(*) n FROM pd.leads')?.n, 1);
+ assert.equal(restored.one('SELECT action FROM school.audit WHERE resource_id=?', lead.id)?.action,
+  `enquiry.consent:${legal.version}`);
+ assert.equal(restored.one('SELECT count(*) n FROM school.audit WHERE resource_id=?', lead.id)?.n, 1);
+ const admin = restored.one("SELECT * FROM pd.users WHERE id='admin'") as User;
+ assert.equal(buildSchoolView(restoredService, admin, '/staff/leads', new URLSearchParams()).school.leads[0].id, lead.id);
+ assert.throws(() => restoredService.enquire({ ...form, requestKey: 'stale', consentVersion: 'stale' }, 'preview-test'),
+  (error: any) => error.status === 422);
+});
 
 test('preview namespace preserves existing school scenarios and persists blob chunks',async t=>{
  const native=new DatabaseSync(':memory:');t.after(()=>native.close());
@@ -38,10 +78,25 @@ test('preview migrates the legacy lead notes column without losing records and s
  }
 });
 
-test('private preview gate fails closed and checks a signed session',async()=>{
- const env={PREVIEW_ACCESS_KEY:'test-only-key-never-used-on-a-server',PREVIEW_SCHOOL:{getByName:()=>({gateLimit:async()=>true})}},origin='https://preview.example';
- assert.equal((await previewGate(new Request(origin),{...env,PREVIEW_ACCESS_KEY:undefined}))?.status,503);
- assert((await previewGate(new Request(origin+'/staff'),env))?.headers.get('X-Robots-Tag')?.includes('noindex'));
- const denied=await previewGate(new Request(origin+'/__preview/login',{method:'POST',headers:{Origin:origin},body:new URLSearchParams({key:'wrong'})}),env);assert.equal(denied?.status,401);
- const login=await previewGate(new Request(origin+'/__preview/login',{method:'POST',headers:{Origin:origin},body:new URLSearchParams({key:env.PREVIEW_ACCESS_KEY})}),env);assert.equal(login?.status,303);const cookie=login?.headers.get('Set-Cookie')?.split(';')[0];assert(cookie);assert.equal(await previewGate(new Request(origin+'/staff',{headers:{Cookie:cookie}}),env),null);assert((await previewGate(new Request(origin+'/staff',{headers:{Cookie:cookie+'bad'}}),env)) instanceof Response);
+test('preview pages are public and demo-role access requires a signed permission', async () => {
+ const origin = 'https://preview.example';
+ const env = { PREVIEW_ACCESS_KEY: 'test-only-key-never-used-on-a-server', PREVIEW_SCHOOL: {getByName: () => ({gateLimit: async () => true})} };
+ for (const path of ['/', '/directions', '/legal/privacy', '/legal/consent', '/contacts', '/login', '/staff', '/api/leads']) {
+  assert.equal(await previewGate(new Request(origin + path), env), null);
+  assert.equal(await previewGate(new Request(origin + path), {...env, PREVIEW_ACCESS_KEY: undefined}), null);
+ }
+ const oldPage = await previewGate(new Request(origin + '/__preview/login'), env);
+ assert.equal(oldPage?.status, 303);
+ assert.equal(oldPage?.headers.get('Location'), origin + '/');
+ const request = (key: string, source = origin) => new Request(origin + '/__preview/login', {method:'POST', headers:{Origin:source}, body:new URLSearchParams({key})});
+ assert.equal((await previewGate(request('wrong'), env))?.status, 401);
+ assert.equal((await previewGate(request(env.PREVIEW_ACCESS_KEY, 'https://other.example'), env))?.status, 403);
+ assert.equal(await hasPreviewAccess(new Request(origin + '/login'), env), false);
+ const login = await previewGate(request(env.PREVIEW_ACCESS_KEY), env);
+ assert.equal(login?.status, 303);
+ const cookie = login?.headers.get('Set-Cookie')?.split(';')[0];
+ assert(cookie);
+ assert.equal(await hasPreviewAccess(new Request(origin + '/login', {headers:{Cookie:cookie}}), env), true);
+ assert.equal(await hasPreviewAccess(new Request(origin + '/login', {headers:{Cookie:cookie + 'bad'}}), env), false);
+ assert.equal(await hasPreviewAccess(new Request(origin + '/login', {headers:{Cookie:cookie}}), {}), false);
 });
