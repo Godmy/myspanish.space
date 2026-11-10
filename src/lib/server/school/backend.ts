@@ -1,5 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { dev } from '$app/environment';
 import { getSchool } from './runtime.ts';
 import { previewClient,unwrapPreview } from './preview-client.ts';
 import { buildSchoolView } from './view-model.ts';
@@ -27,11 +28,12 @@ export async function schoolBackend(event:RequestEvent){
   async importRegistry(csv:string,sourceId:string,digest?:string){return unwrapPreview(await remote.importRegistry(token,csv,sourceId,digest));}
  };}
  const service=await getSchool(),user=service.user(token);
+ const localPreview=dev&&env.SCHOOL_PREVIEW_AUTH==='true';
  return {
-  development:service.development,
+  development:localPreview,
   async archive(data:Row){return importArchiveBatch(service,user,data);},
-  async view(){return buildSchoolView(service,user,event.url.pathname,event.url.searchParams);},
-  async login(data:Row){return service.development&&data.userId?service.login(String(data.userId)):service.authenticate(data.login,data.password,ip);},
+  async view(){const result=buildSchoolView(service,user,event.url.pathname,event.url.searchParams);result.school.local=localPreview;if(!localPreview)result.school.demoUsers=[];return result;},
+  async login(data:Row){if(data.userId){if(!localPreview)throw new SchoolError(403,'Тестовый вход доступен только на preview.');return service.login(String(data.userId));}return service.authenticate(data.login,data.password,ip);},
   async logout(){return service.logout(token);},
   async enquiry(data:Row){return service.enquire(data,ip);},
   async attempt(data:Row){return service.attempt(user,data,data.demo===true);},

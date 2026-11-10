@@ -14,7 +14,7 @@ assert.equal(oldPage.status, 303, 'Old password-page URL redirects');
 const staffDenied = await fetch(base + '/staff', { redirect: 'manual' });
 assert.equal(staffDenied.status, 303, 'Staff requires a school session');
 const forgedDemo = await fetch(base + '/login', {
-  method: 'POST', headers: { Origin: base },
+  method: 'POST', headers: { Origin: base, Accept: 'text/html' },
   body: new URLSearchParams({ command: 'login', userId: 'admin' }), redirect: 'manual',
 });
 assert.equal(forgedDemo.status, 403, 'Demo-role login denied to public visitors');
@@ -22,7 +22,7 @@ console.log('Public pages open without a password; ordinary login and protected 
 if (process.env.PREVIEW_VERIFY_DEMO === '1') {
 const key = process.env.PREVIEW_ACCESS_KEY || readFileSync('.preview.local/access-key.txt', 'utf8').trim();
 const gate = await fetch(base + '/__preview/login', {
-  method: 'POST', headers: { Origin: base }, body: new URLSearchParams({ key }), redirect: 'manual',
+  method: 'POST', headers: { Origin: base, Accept: 'text/html' }, body: new URLSearchParams({ key }), redirect: 'manual',
 });
 assert.equal(gate.status, 303, 'Preview password login');
 const access = gate.headers.get('set-cookie')?.split(';')[0];
