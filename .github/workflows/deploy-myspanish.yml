@@ -1,4 +1,4 @@
-# Заготовка деплоя на Cloudflare Pages.
+# Legacy Pages deployment is manual. Preview is published explicitly with yarn deploy:preview.
 # Ничего не публикует, пока в репозитории не заданы секреты:
 #   CLOUDFLARE_API_TOKEN   — scope: Account · Cloudflare Pages · Edit
 #   CLOUDFLARE_ACCOUNT_ID   — c98f42620906e66b20246d8402791a19
@@ -8,8 +8,6 @@ name: deploy-myspanish
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
