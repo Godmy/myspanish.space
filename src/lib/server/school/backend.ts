@@ -14,7 +14,7 @@ export async function schoolBackend(event:RequestEvent){
  let ip=event.request.headers.get('CF-Connecting-IP')??'preview-local';try{ip=event.getClientAddress();}catch{}
  if(remote){
  const accessKey=Reflect.get(event.platform?.env??{},'PREVIEW_ACCESS_KEY');
- const demoAccess=await hasPreviewAccess(event.request,{PREVIEW_ACCESS_KEY:typeof accessKey==='string'?accessKey:undefined});
+ const demoAccess=!Reflect.get(event.platform?.env??{},'SCHOOL')&&await hasPreviewAccess(event.request,{PREVIEW_ACCESS_KEY:typeof accessKey==='string'?accessKey:undefined});
  return {
   development:demoAccess,
   async archive(data:Row){return unwrapPreview(await remote.archiveImport(token,data));},
