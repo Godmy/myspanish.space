@@ -174,7 +174,7 @@ export class SchoolService {
 	}
 	publicCourses(query = '') {
 		return this.db.all(
-			"SELECT * FROM school.courses WHERE (publication='published' OR EXISTS(SELECT 1 FROM school.archive_programs ap WHERE ap.course_id=school.courses.id)) AND (id NOT IN ('phonetics','songs','with-mum','themes','marathons') OR NOT EXISTS(SELECT 1 FROM school.archive_programs)) AND (title LIKE ? OR summary LIKE ?) ORDER BY demo DESC,title",
+			"SELECT * FROM school.courses WHERE (publication='published' OR EXISTS(SELECT 1 FROM school.archive_programs ap WHERE ap.course_id=school.courses.id)) AND (id NOT IN ('phonetics','songs','with-mum','themes','marathons') OR NOT EXISTS(SELECT 1 FROM school.archive_programs)) AND (title LIKE ? OR summary LIKE ?) ORDER BY demo DESC,(status='available') DESC,title",
 			`%${query.slice(0, 100)}%`,
 			`%${query.slice(0, 100)}%`,
 		);
@@ -567,6 +567,10 @@ export class SchoolService {
 		return { items, total, page, pages: Math.max(1, Math.ceil(total / 25)) };
 	}
 	file(user: User | null, id: string, studentId?: string) {
+		const { path, ...info } = this.fileLocation(user, id, studentId);
+		return { ...info, body: this.db.files.read(path) };
+	}
+	fileLocation(user: User | null, id: string, studentId?: string) {
 		if (user && ['parent', 'student'].includes(user.role))
 			studentId = this.student(user, studentId);
 		const upload = this.db.one('SELECT * FROM pd.uploads WHERE id=?', id);
@@ -588,7 +592,7 @@ export class SchoolService {
 			return {
 				name: upload.name,
 				mime: upload.mime,
-				body: this.db.files.read(resolve(this.db.directory, 'uploads', upload.storage_key)),
+				path: resolve(this.db.directory, 'uploads', upload.storage_key),
 			};
 		}
 		const material = this.db.one('SELECT * FROM school.materials WHERE id=?', id);
@@ -598,7 +602,7 @@ export class SchoolService {
 		return {
 			name: material.relative_path.split(/[\\/]/).pop(),
 			mime: material.format === 'txt' ? 'text/plain; charset=utf-8' : 'application/octet-stream',
-			body: this.db.files.read(resolve(this.db.directory, 'files', material.storage_key)),
+			path: resolve(this.db.directory, 'files', material.storage_key),
 		};
 	}
 	materialAccess(user: User | null, id: string, studentId?: string) {

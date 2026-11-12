@@ -6,6 +6,7 @@ import { previewClient,unwrapPreview } from './preview-client.ts';
 import { buildSchoolView } from './view-model.ts';
 import { previewImport,applyImport } from './importer.ts';
 import { importArchiveBatch } from './archive.ts';
+import { localAttachment } from './local-download.ts';
 import { SchoolError, type Row } from './types.ts';
 import { hasPreviewAccess } from '../../../../cloudflare/preview-gate.ts';
 
@@ -23,7 +24,7 @@ export async function schoolBackend(event:RequestEvent){
   async logout(){return unwrapPreview(await remote.logout(token));},
   async enquiry(data:Row){return unwrapPreview(await remote.enquiry(data,ip));},
   async attempt(data:Row){return unwrapPreview(await remote.attempt(token,data));},
-  async attachment(id:string,child?:string){return unwrapPreview(await remote.attachment(token,id,child));},
+  async attachment(id:string,child?:string,_range?:string|null){return unwrapPreview(await remote.attachment(token,id,child));},
   async command(command:string,data:Row,file?:File){const {file:ignored,...fields}=data;return unwrapPreview(await remote.command(token,command,fields,file?{name:file.name,type:file.type,bytes:await file.arrayBuffer()}:undefined));},
   async importRegistry(csv:string,sourceId:string,digest?:string){return unwrapPreview(await remote.importRegistry(token,csv,sourceId,digest));}
  };}
@@ -37,7 +38,7 @@ export async function schoolBackend(event:RequestEvent){
   async logout(){return service.logout(token);},
   async enquiry(data:Row){return service.enquire(data,ip);},
   async attempt(data:Row){return service.attempt(user,data,data.demo===true);},
-  async attachment(id:string,child?:string){const studentId=user&&['student','parent'].includes(user.role)?service.student(user,child):undefined;return service.file(user,id,studentId);},
+  async attachment(id:string,child?:string,range?:string|null){const studentId=user&&['student','parent'].includes(user.role)?service.student(user,child):undefined;try{return await localAttachment(service,user,id,studentId,range);}catch(error){if(!user&&error instanceof SchoolError&&error.status===404)throw new SchoolError(401,'Войдите в кабинет, чтобы скачать материал.');throw error;}},
   async command(command:string,data:Row,file?:File){if(file){const upload=await service.upload(service.require(user),file);data.uploadId=upload.id;}return service.command(user,command,data);},
   async importRegistry(csv:string,sourceId:string,digest?:string){service.require(user,['admin']);if(digest)return applyImport(service.db,csv,sourceId,digest,env.ARCHIVE_SOURCE_ROOT||undefined);const {records,...report}=await previewImport(csv,sourceId,env.ARCHIVE_SOURCE_ROOT||undefined);return {...report,records:records.slice(0,100).map(({physical,...row})=>row)};}
  };

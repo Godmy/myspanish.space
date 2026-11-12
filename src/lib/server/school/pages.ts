@@ -1,6 +1,7 @@
 import { error, fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { SchoolError, type Row } from './types.ts';
 import { schoolBackend } from './backend.ts';
+import { fileReturnPath } from './return-to-file.ts';
 
 export async function schoolPage(event: RequestEvent) {
 	try {
@@ -31,7 +32,7 @@ export async function schoolAction(event: RequestEvent) {
 				secure: event.url.protocol === 'https:',
 				maxAge: 86400,
 			});
-			redirect(303, ['admin', 'teacher'].includes(viewer.role) ? '/staff' : '/account');
+			redirect(303, fileReturnPath(event.url.searchParams.get('next')) ?? (['admin', 'teacher'].includes(viewer.role) ? '/staff' : '/account'));
 		}
 		if (command === 'logout') {
 			await backend.logout();
